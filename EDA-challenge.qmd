@@ -1,0 +1,135 @@
+---
+title: "EDA-challenge.qmd"
+format: html
+---
+
+```{r}
+library(tidyverse)
+f <- file.choose()
+d <- read_csv(f, col_names= TRUE)
+```
+
+```{r}
+class(d)
+names(d)
+```
+
+```{r}
+#1
+BSD <- (d$Body_mass_male_mean/d$Body_mass_female_mean)
+
+#2
+sex_ratio <- (d$AdultFemale/d$AdultMales)
+
+#3
+DI <- ((d$DayLength_km)/(2*(sqrt(d$HomeRange_km2/pi))))
+```
+
+```{r}
+#4
+library(ggplot2)
+p <- ggplot(data = d, aes(
+  x = Move,
+  y = DayLength_km
+))
+p
+(p + facet_wrap("Family") + geom_point(na.rm=TRUE) + geom_smooth(method="lm", na.rm =TRUE))
+(p+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+```
+
+```{r}
+#4
+p <- ggplot(data = d, aes(
+  x = Move,
+  y = log(DayLength_km)
+))
+(p+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+
+g <- ggplot(data = d, aes(
+  x = log(Move),
+  y = DayLength_km
+))
+(g+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+
+v <- ggplot(data = d, aes(
+  x = log(Move),
+  y = log(DayLength_km)
+))
+(v+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+```
+
+4. The data shows a slight upward trend meaning that species taht spend more time moving travel slightly further overall. This trend is less apparent when looking at individual families. Families like Atelidae and Hylobatidae show strong upward trends. However some families Lemuridae and Cercopithecidae don't have as strong of a correlation. I can also see that hominidae shows a slight downward trend. I do not believe it is necessary to transform both variables as that spreads the data out too making the trend less apparentn (in the case of transforming the y variable) or doesnt change the plot much (in the case of transforming the x varaible).
+
+```{r}
+#5
+j <- ggplot(data = d, aes(
+  x = MeanGroupSize,
+  y = DayLength_km
+))
+(j + facet_wrap("Family") + geom_point(na.rm=TRUE) + geom_smooth(method="lm", na.rm =TRUE))
+(j+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+```
+```{r}
+#5
+r <- ggplot(data = d, aes(
+  x = MeanGroupSize,
+  y = log(DayLength_km)
+))
+(r+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+
+h <- ggplot(data = d, aes(
+  x = log(MeanGroupSize),
+  y = DayLength_km
+))
+(h+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+
+l <- ggplot(data = d, aes(
+  x = log(MeanGroupSize),
+  y = log(DayLength_km)
+))
+(l+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+```
+
+5. There is an upward trend in the plot showing that overall species that have larger mean group sizes travel further than species with less. This trend can also be seen in individual families with almost all families showing the same upward trend. However Hylobatidae and Indriidae do not share a similar trend and Lemuridae shows a significalty decreased upward trend. I think transforming the x varaible helps shows the linearity of the trends by helping spread the x axis better but I do not think transforming the y axis is necessary.
+
+```{r}
+#6
+k <- ggplot(data = d, aes(
+  x = BSD,
+  y = Canine_Dimorphism
+))
+(k + facet_wrap("Family") + geom_point(na.rm=TRUE) + geom_smooth(method="lm", na.rm =TRUE))
+(k+ geom_point(na.rm = TRUE) + geom_smooth(method = "lm", na.rm =TRUE))
+```
+
+6. There is an overall upward trend showing that increased body size dimorphism also means larger canine dimorphism overall. When looking at individual families, Cercopithecidae, Hominidae and Cebidae show this upward trend. However, families such as Atelidae and Lemuridae, show a negative trend between body size dimorphism and canine dimorphism.
+
+```{r}
+#7
+d <- d |> mutate(
+  diet_strategy = case_when(
+    Fruit > 50 ~ "frugivore",
+    Leaves > 50 ~ "folivore",
+    Fruit < 50 ~ "omnivore",
+    Leaves < 50 ~ "omnivore",
+))
+```
+
+```{r}
+#7
+boxplot(data=d, MeanGroupSize ~ diet_strategy, na.rm=TRUE)
+```
+
+7. Frugivores see cases where they have a larger mean group size compared to folivores but the data based on the box plot, there isn't a significant difference between the two.
+
+```{r}
+#8
+b <- d |> mutate(Binomial = paste(Genus, "-", Species)) |>
+  select(Binomial, Family, Brain_Size_Species_Mean, Body_mass_male_mean)|>
+  group_by(Family) |>
+  summarise(
+    mean_brain_size = mean(Brain_Size_Species_Mean, na.rm =TRUE),
+    mean_male_body_mass = mean(Body_mass_male_mean, na.rm =TRUE)) |> 
+  arrange(mean_brain_size)
+b
+```
